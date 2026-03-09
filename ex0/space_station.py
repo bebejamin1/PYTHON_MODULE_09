@@ -7,7 +7,7 @@
 #   By: bbeaurai <bbeaurai@student.42lehavre.fr>     +#+  +:+       +#+       #
 #                                                  +#+#+#+#+#+   +#+          #
 #   Created: 2026/03/08 16:27:07 by bbeaurai            #+#    #+#            #
-#   Updated: 2026/03/08 19:20:02 by bbeaurai           ###   ########.fr      #
+#   Updated: 2026/03/09 11:47:55 by bbeaurai           ###   ########.fr      #
 #                                                                             #
 # ########################################################################### #
 
@@ -67,7 +67,7 @@ class SpaceStation(BaseModel):
 # pip install -U pydantic desinstall lancienne et install la nouvelle
 def main(data_stations: List[Dict[str, str]]) -> None:
 
-    print("\n" + "Space Station Data Validation")
+    print("\n" + "Space Station Data Validation" + "\n")
     print("".center(79, "="))
 
     for data in data_stations:
@@ -87,10 +87,15 @@ def main(data_stations: List[Dict[str, str]]) -> None:
                 print("Status: Not Operational")
             print("\n" + "".center(79, "="))
 
-        except (ValueError, ValidationError, TypeError) as e:
+        except ValidationError as e:
             print(f"{red}[ERROR]{reset} "
                   "Expected validation error:")
             print(e.errors()[0]["msg"])
+            print("\n" + "".center(79, "="))
+        except (ValueError, TypeError) as e:
+            print(f"{red}[ERROR]{reset} "
+                  "Expected validation error:")
+            print(e)
 
 
 if __name__ == "__main__":
@@ -115,7 +120,7 @@ if __name__ == "__main__":
                 "last_maintenance": datetime.now(),
                 "is_operational": True,
                 "notes": ""
-            }
-    ]
+            },
+                    ]
 
     main(data_stations)
