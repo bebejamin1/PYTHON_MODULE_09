@@ -7,7 +7,7 @@
 #   By: bbeaurai <bbeaurai@student.42lehavre.fr>     +#+  +:+       +#+       #
 #                                                  +#+#+#+#+#+   +#+          #
 #   Created: 2026/03/09 16:54:23 by bbeaurai            #+#    #+#            #
-#   Updated: 2026/03/09 18:08:45 by bbeaurai           ###   ########.fr      #
+#   Updated: 2026/03/09 18:09:49 by bbeaurai           ###   ########.fr      #
 #                                                                             #
 # ########################################################################### #
 
@@ -83,8 +83,8 @@ class SpaceMission(BaseModel):
 
     @model_validator(mode="after")
     def check_validate(self) -> Self:
-        commander = captain = inactive = 0
-        years = []
+        # commander = captain = inactive = 0
+        # years = []
         # Mission ID must start with "M"
         if (not self.mission_id.startswith("M")):
             raise ValueError("startwith M")
