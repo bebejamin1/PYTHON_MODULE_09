@@ -7,7 +7,7 @@
 #   By: bbeaurai <bbeaurai@student.42lehavre.fr>     +#+  +:+       +#+       #
 #                                                  +#+#+#+#+#+   +#+          #
 #   Created: 2026/03/09 16:54:23 by bbeaurai            #+#    #+#            #
-#   Updated: 2026/03/10 13:02:14 by bbeaurai           ###   ########.fr      #
+#   Updated: 2026/03/10 13:18:56 by bbeaurai           ###   ########.fr      #
 #                                                                             #
 # ########################################################################### #
 
@@ -178,7 +178,7 @@ if __name__ == "__main__":
 # *                                 data 1                                    *
 # *                                                                           *
 
-    data_member = [
+    data_member1 = [
             {
                 "member_id": "SC_2006",
                 "name": "Sarah Connor",
@@ -208,11 +208,11 @@ if __name__ == "__main__":
             },
                   ]
 
-    total_member: List[CrewMember] = []
-    for data in data_member:
+    total_member1: List[CrewMember] = []
+    for data in data_member1:
         try:
-            member = CrewMember(**data)
-            total_member.append(member)
+            member: CrewMember = CrewMember(**data)
+            total_member1.append(member)
         except (ValueError, ValidationError, TypeError) as e:
             print(f"{red}[ERROR]{reset} Expected validation error:")
             print(e.errors()[0]["msg"][13:])
@@ -254,7 +254,7 @@ if __name__ == "__main__":
     total_member2: List[CrewMember] = []
     for data in data_member2:
         try:
-            member = CrewMember(**data)
+            member: CrewMember = CrewMember(**data)
             total_member2.append(member)
         except (ValueError, ValidationError, TypeError) as e:
             print(f"{red}[ERROR]{reset} Expected validation error:")
@@ -271,7 +271,7 @@ if __name__ == "__main__":
             "destination": "Mars",
             "launch_date": datetime.now(),
             "duration_days": 900,
-            "crew": total_member,
+            "crew": total_member1,
             "mission_status": "",
             "budget_millions": "2500.0"
         },

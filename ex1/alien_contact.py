@@ -7,7 +7,7 @@
 #   By: bbeaurai <bbeaurai@student.42lehavre.fr>     +#+  +:+       +#+       #
 #                                                  +#+#+#+#+#+   +#+          #
 #   Created: 2026/03/08 19:24:40 by bbeaurai            #+#    #+#            #
-#   Updated: 2026/03/10 11:50:39 by bbeaurai           ###   ########.fr      #
+#   Updated: 2026/03/10 13:10:53 by bbeaurai           ###   ########.fr      #
 #                                                                             #
 # ########################################################################### #
 
@@ -85,29 +85,36 @@ class AlienContact(BaseModel):
     message_received: Optional[str] = Field(max_length=500)
     is_verified: bool = Field(default=False)
 
+    # Contact ID must start with "AC" (Alien Contact)
     @model_validator(mode="after")
-    def check_validate(self) -> Self:
-
-        # Contact ID must start with "AC" (Alien Contact)
+    def check_id(self) -> Self:
         if (not self.contact_id.startswith("AC")):
             raise ValueError("The Contact ID does not begin with “AC”.")
+        return (self)
 
-        # Physical contact reports must be verified
+    # Physical contact reports must be verified
+    @model_validator(mode="after")
+    def check_contact_physical(self) -> Self:
         if (self.contact_type.value == "physical"):
             if (self.is_verified is False):
                 raise ValueError("Physical contact must be verified.")
+        return (self)
 
-        # Telepathic contact requires at least 3 witnesses
+    # Telepathic contact requires at least 3 witnesses
+    @model_validator(mode="after")
+    def check_contact_telepathic(self) -> Self:
         if (self.contact_type.value == "telepathic"):
             if (self.witness_count < 3):
                 raise ValueError("Telepathic contact requires "
                                  "at least 3 witnesses")
+        return (self)
 
-        # Strong signals (> 7.0) should include received messages
+    # Strong signals (> 7.0) should include received messages
+    @model_validator(mode="after")
+    def check_signal(self) -> Self:
         if (self.signal_strength > 7):
             if (len(self.message_received) == 0):
                 raise ValueError("Signal greater than 7 waiting for a message")
-
         return (self)
 
 
