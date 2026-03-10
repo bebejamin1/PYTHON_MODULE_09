@@ -7,7 +7,7 @@
 #   By: bbeaurai <bbeaurai@student.42lehavre.fr>     +#+  +:+       +#+       #
 #                                                  +#+#+#+#+#+   +#+          #
 #   Created: 2026/03/08 19:24:40 by bbeaurai            #+#    #+#            #
-#   Updated: 2026/03/10 13:10:53 by bbeaurai           ###   ########.fr      #
+#   Updated: 2026/03/10 13:25:14 by bbeaurai           ###   ########.fr      #
 #                                                                             #
 # ########################################################################### #
 
@@ -64,9 +64,10 @@ except ModuleNotFoundError:
 
 
 class ContactType(Enum):
+    RADIO = "radio"
+    VISUAL = "visual"
     PHYSICAL = "physical"
     TELEPATIC = "telepathic"
-    RADIO = "radio"
 
 
 # =============================================================================
