@@ -7,14 +7,13 @@
 #   By: bbeaurai <bbeaurai@student.42lehavre.fr>     +#+  +:+       +#+       #
 #                                                  +#+#+#+#+#+   +#+          #
 #   Created: 2026/03/09 16:54:23 by bbeaurai            #+#    #+#            #
-#   Updated: 2026/03/09 18:09:49 by bbeaurai           ###   ########.fr      #
+#   Updated: 2026/03/10 12:09:52 by bbeaurai           ###   ########.fr      #
 #                                                                             #
 # ########################################################################### #
 
 
 import sys
-from typing import List
-from typing_extensions import Self
+from typing import List, Dict
 
 green = "\033[32m\033[1m\033[1m"
 red = "\033[31m\033[5m\033[1m"
@@ -22,6 +21,11 @@ redp = "\033[31m"
 brown = "\033[0;33m"
 blue = "\033[38;5;67m"
 reset = "\033[0m"
+
+
+# =============================================================================
+# ================================ TEST =======================================
+# =============================================================================
 
 
 try:
@@ -34,15 +38,15 @@ try:
             f"{blue}# And install pydentic" + "\n"
             f"{brown}$ pip install -U pydantic{reset}" + "\n"
                 )
+    from typing_extensions import Self
+    from pydantic import BaseModel, Field, ValidationError, model_validator
+    from enum import Enum
+    from datetime import datetime
 
 except AttributeError as e:
     print("\n" + f"{red}[ERROR]{reset}", e)
     exit()
 
-try:
-    from pydantic import BaseModel, Field, ValidationError, model_validator
-    from enum import Enum
-    from datetime import datetime
 except ModuleNotFoundError:
     print(
         "\n" + f"{red}[ERROR]{reset} pydantic is not installed, "
@@ -53,12 +57,22 @@ except ModuleNotFoundError:
     exit()
 
 
+# =============================================================================
+# ================================ ENUM =======================================
+# =============================================================================
+
+
 class Rank(Enum):
     CADET = "cadet"
     OFFICIER = "officer"
     LIEUTENANT = "lieutenant"
     CAPTAIN = "captain"
     COMMANDER = "commander"
+
+
+# =============================================================================
+# ============================= BASEMODEL =====================================
+# ================================ #1 =========================================
 
 
 class CrewMember(BaseModel):
@@ -71,35 +85,69 @@ class CrewMember(BaseModel):
     is_active: bool = Field(default=True)
 
 
+# =============================================================================
+# ============================= BASEMODEL =====================================
+# ================================ #2 =========================================
+
+
 class SpaceMission(BaseModel):
     mission_id: str = Field(min_length=5, max_length=15)
     mission_name: str = Field(min_length=3, max_length=100)
     destination: str = Field(min_length=3, max_length=50)
     launch_date: datetime
     duration_days: int = Field(ge=1, le=3650)
-    crew: List[CrewMember] = Field(min_length=1, max_length=12)
+    crew: List[CrewMember] = Field(strict=True, min_length=1, max_length=12)
     mission_status: str = Field(default="planned")
     budget_millions: float = Field(ge=1.0, le=10000.0)
 
+    # Mission ID must start with "M"
     @model_validator(mode="after")
-    def check_validate(self) -> Self:
-        # commander = captain = inactive = 0
-        # years = []
-        # Mission ID must start with "M"
+    def check_id(self) -> Self:
         if (not self.mission_id.startswith("M")):
-            raise ValueError("startwith M")
-        # Must have at least one Commander or Captain
-        if (self.crew):
-            pass
-        # Long missions (> 365 days) need 50% experienced crew (5+ years)
-        # All crew members must be active
+            raise ValueError("Mission ID must start with \"M\"")
+        return (self)
+
+    # Must have at least one Commander or Captain
+    @model_validator(mode="after")
+    def check_rank(self) -> Self:
+        for crew in self.crew:
+            if (crew.rank.value == "commander" or
+                    crew.rank.value == "captain"):
+                return (self)
+        raise ValueError("Mission must have at least one Commander or Captain")
+
+    # Long missions (> 365 days) need 50% experienced crew (5+ years)
+    @model_validator(mode="after")
+    def check_exp(self) -> Self:
+        years = []
+        count = 0
+        if (self.duration_days > 365):
+            for crew in self.crew:
+                years.append(crew.years_experience)
+        for year in years:
+            if (year > 5):
+                count += 1
+        if ((len(years) / 2) <= count):
+            return (self)
+        raise ValueError("The mission requires 50% experienced crew ""(5 years"
+                         " or more) for a long-duration mission (> 365 days).")
+
+    # All crew members must be active
+    @model_validator(mode="after")
+    def check_active(self) -> Self:
+        for crew in self.crew:
+            if (crew.is_active is False):
+                raise ValueError("All crew members must be active")
+        return (self)
 
 
-def main(total_member: List[CrewMember],
-         space_mission: SpaceMission) -> None:
-    print("\n" + "Space Mission Crew Validation" + "\n")
+# =============================================================================
+# =============================== MAIN ========================================
+# =============================================================================
 
-    print("".center(79, "="))
+
+def main(space_mission: List[Dict[str, str]]) -> None:
+
     try:
         mission = space_mission
         print("Valid station created:")
@@ -115,9 +163,8 @@ def main(total_member: List[CrewMember],
         print(e.errors()[0]["msg"][13:])
 
     print("Crew members:")
-    for data in data_member:
+    for member in space_mission.crew:
         try:
-            member = CrewMember(**data)
             print(f"- {member.name} ({member.rank.value}) - "
                   f"{member.specialization}")
         except (ValueError, ValidationError, TypeError) as e:
@@ -128,6 +175,13 @@ def main(total_member: List[CrewMember],
 
 
 if __name__ == "__main__":
+
+    print("\n" + "Space Mission Crew Validation" + "\n")
+    print("".center(79, "="))
+
+# *****************************************************************************
+# *                                  data                                     *
+# *                                                                           *
 
     data_member = [
             {
@@ -157,9 +211,39 @@ if __name__ == "__main__":
                 "years_experience": 8,
                 "is_active": True,
             },
-    ]
+                  ]
 
-    total_member = []
+    data_member2 = [
+            {
+                "member_id": "SC_2006",
+                "name": "Sarah Connor",
+                "rank": Rank.CADET,
+                "age": 36,
+                "specialization": "Mission Command",
+                "years_experience": 20,
+                "is_active": True,
+            },
+            {
+                "member_id": "JS_2014",
+                "name": "John Smith",
+                "rank": Rank.CADET,
+                "age": 31,
+                "specialization": "Navigation",
+                "years_experience": 12,
+                "is_active": True,
+            },
+            {
+                "member_id": "AJ_2018",
+                "name": "Alice Johnson",
+                "rank": Rank.OFFICIER,
+                "age": 27,
+                "specialization": "Navigation",
+                "years_experience": 8,
+                "is_active": True,
+            },
+                  ]
+
+    total_member: List[CrewMember] = []
     for data in data_member:
         try:
             member = CrewMember(**data)
@@ -168,14 +252,36 @@ if __name__ == "__main__":
             print(f"{red}[ERROR]{reset} Expected validation error:")
             print(e.errors()[0]["msg"][13:])
 
-    space_mission = SpaceMission(
-        mission_id="M2024_MARS",
-        mission_name="Mars Colony Establishment",
-        destination="Mars",
-        launch_date=datetime.now(),
-        duration_days=900,
-        crew=total_member,
-        mission_status="",
-        budget_millions="2500.0",
-    )
-    main(total_member, space_mission)
+    total_member2: List[CrewMember] = []
+    for data in data_member:
+        try:
+            member = CrewMember(**data)
+            total_member2.append(member)
+        except (ValueError, ValidationError, TypeError) as e:
+            print(f"{red}[ERROR]{reset} Expected validation error:")
+            print(e.errors()[0]["msg"][13:])
+
+    space_mission = [
+        {
+            "mission_id": "M2024_MARS",
+            "mission_name": "Mars Colony Establishment",
+            "destination": "Mars",
+            "launch_date": datetime.now(),
+            "duration_days": 900,
+            "crew": total_member,
+            "mission_status": "",
+            "budget_millions": "2500.0"
+        },
+        {
+            "mission_id": "M2024_MARS",
+            "mission_name": "Mars Colony Establishment",
+            "destination": "Mars",
+            "launch_date": datetime.now(),
+            "duration_days": 900,
+            "crew": total_member2,
+            "mission_status": "",
+            "budget_millions": "2500.0"
+        }
+    ]
+
+    main(space_mission)

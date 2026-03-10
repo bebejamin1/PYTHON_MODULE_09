@@ -7,13 +7,12 @@
 #   By: bbeaurai <bbeaurai@student.42lehavre.fr>     +#+  +:+       +#+       #
 #                                                  +#+#+#+#+#+   +#+          #
 #   Created: 2026/03/08 19:24:40 by bbeaurai            #+#    #+#            #
-#   Updated: 2026/03/09 16:53:54 by bbeaurai           ###   ########.fr      #
+#   Updated: 2026/03/10 11:50:39 by bbeaurai           ###   ########.fr      #
 #                                                                             #
 # ########################################################################### #
 
 
 from typing import Optional, List, Dict
-from typing_extensions import Self
 
 import sys
 
@@ -23,6 +22,11 @@ redp = "\033[31m"
 brown = "\033[0;33m"
 blue = "\033[38;5;67m"
 reset = "\033[0m"
+
+
+# =============================================================================
+# ================================ TEST =======================================
+# =============================================================================
 
 
 try:
@@ -35,15 +39,15 @@ try:
             f"{blue}# And install pydentic" + "\n"
             f"{brown}$ pip install -U pydantic{reset}" + "\n"
                 )
+    from typing_extensions import Self
+    from pydantic import BaseModel, Field, ValidationError, model_validator
+    from enum import Enum
+    from datetime import datetime
 
 except AttributeError as e:
     print("\n" + f"{red}[ERROR]{reset}", e)
     exit()
 
-try:
-    from pydantic import BaseModel, Field, ValidationError, model_validator
-    from enum import Enum
-    from datetime import datetime
 except ModuleNotFoundError:
     print(
         "\n" + f"{red}[ERROR]{reset} pydantic is not installed, "
@@ -54,10 +58,20 @@ except ModuleNotFoundError:
     exit()
 
 
+# =============================================================================
+# ================================ ENUM =======================================
+# =============================================================================
+
+
 class ContactType(Enum):
     PHYSICAL = "physical"
     TELEPATIC = "telepathic"
     RADIO = "radio"
+
+
+# =============================================================================
+# ============================== BaseModel ====================================
+# =============================================================================
 
 
 class AlienContact(BaseModel):
@@ -95,6 +109,11 @@ class AlienContact(BaseModel):
                 raise ValueError("Signal greater than 7 waiting for a message")
 
         return (self)
+
+
+# =============================================================================
+# ================================ MAIN =======================================
+# =============================================================================
 
 
 def main(data_alien: List[Dict[str, str]]) -> bool:
