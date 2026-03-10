@@ -7,7 +7,7 @@
 #   By: bbeaurai <bbeaurai@student.42lehavre.fr>     +#+  +:+       +#+       #
 #                                                  +#+#+#+#+#+   +#+          #
 #   Created: 2026/03/09 16:54:23 by bbeaurai            #+#    #+#            #
-#   Updated: 2026/03/10 12:09:52 by bbeaurai           ###   ########.fr      #
+#   Updated: 2026/03/10 13:02:14 by bbeaurai           ###   ########.fr      #
 #                                                                             #
 # ########################################################################### #
 
@@ -125,7 +125,7 @@ class SpaceMission(BaseModel):
             for crew in self.crew:
                 years.append(crew.years_experience)
         for year in years:
-            if (year > 5):
+            if (year >= 5):
                 count += 1
         if ((len(years) / 2) <= count):
             return (self)
@@ -149,29 +149,24 @@ class SpaceMission(BaseModel):
 def main(space_mission: List[Dict[str, str]]) -> None:
 
     try:
-        mission = space_mission
-        print("Valid station created:")
-        print(f"Mission: {mission.mission_name}")
-        print(f"ID: {mission.mission_id}")
-        print(f"Destination: {mission.destination}")
-        print(f"Duration: {mission.duration_days} days")
-        print(f"Budget: {mission.budget_millions}M")
-        print(f"Crew size: {len(mission.crew)}")
+        for mission in space_mission:
+            m = SpaceMission(**mission)
+            print("Valid station created:")
+            print(f"Mission: {m.mission_name}")
+            print(f"ID: {m.mission_id}")
+            print(f"Destination: {m.destination}")
+            print(f"Duration: {m.duration_days} days")
+            print(f"Budget: {m.budget_millions}M")
+            print(f"Crew size: {len(m.crew)}")
+            print("Crew members:")
+            for member in m.crew:
+                print(f"- {member.name} ({member.rank.value}) - "
+                      f"{member.specialization}")
+            print("\n" + "".center(79, "="))
 
     except (ValueError, ValidationError, TypeError) as e:
         print(f"{red}[ERROR]{reset} Expected validation error:")
         print(e.errors()[0]["msg"][13:])
-
-    print("Crew members:")
-    for member in space_mission.crew:
-        try:
-            print(f"- {member.name} ({member.rank.value}) - "
-                  f"{member.specialization}")
-        except (ValueError, ValidationError, TypeError) as e:
-            print(f"{red}[ERROR]{reset} Expected validation error:")
-            print(e.errors()[0]["msg"][13:])
-
-    print("\n" + "".center(79, "="))
 
 
 if __name__ == "__main__":
@@ -180,7 +175,7 @@ if __name__ == "__main__":
     print("".center(79, "="))
 
 # *****************************************************************************
-# *                                  data                                     *
+# *                                 data 1                                    *
 # *                                                                           *
 
     data_member = [
@@ -213,36 +208,6 @@ if __name__ == "__main__":
             },
                   ]
 
-    data_member2 = [
-            {
-                "member_id": "SC_2006",
-                "name": "Sarah Connor",
-                "rank": Rank.CADET,
-                "age": 36,
-                "specialization": "Mission Command",
-                "years_experience": 20,
-                "is_active": True,
-            },
-            {
-                "member_id": "JS_2014",
-                "name": "John Smith",
-                "rank": Rank.CADET,
-                "age": 31,
-                "specialization": "Navigation",
-                "years_experience": 12,
-                "is_active": True,
-            },
-            {
-                "member_id": "AJ_2018",
-                "name": "Alice Johnson",
-                "rank": Rank.OFFICIER,
-                "age": 27,
-                "specialization": "Navigation",
-                "years_experience": 8,
-                "is_active": True,
-            },
-                  ]
-
     total_member: List[CrewMember] = []
     for data in data_member:
         try:
@@ -252,14 +217,52 @@ if __name__ == "__main__":
             print(f"{red}[ERROR]{reset} Expected validation error:")
             print(e.errors()[0]["msg"][13:])
 
+# *****************************************************************************
+# *                                 data 2                                    *
+# *                                                                           *
+
+    data_member2 = [
+            {
+                "member_id": "SC_2006",
+                "name": "Sarah Connor",
+                "rank": Rank.CADET,
+                "age": 36,
+                "specialization": "Mission Command",
+                "years_experience": 5,
+                "is_active": True,
+            },
+            {
+                "member_id": "JS_2014",
+                "name": "John Smith",
+                "rank": Rank.CADET,
+                "age": 31,
+                "specialization": "Navigation",
+                "years_experience": 4,
+                "is_active": True,
+            },
+            {
+                "member_id": "AJ_2018",
+                "name": "Alice Johnson",
+                "rank": Rank.OFFICIER,
+                "age": 27,
+                "specialization": "Navigation",
+                "years_experience": 1,
+                "is_active": True,
+            },
+                  ]
+
     total_member2: List[CrewMember] = []
-    for data in data_member:
+    for data in data_member2:
         try:
             member = CrewMember(**data)
             total_member2.append(member)
         except (ValueError, ValidationError, TypeError) as e:
             print(f"{red}[ERROR]{reset} Expected validation error:")
             print(e.errors()[0]["msg"][13:])
+
+# *****************************************************************************
+# *                                Mission                                    *
+# *                                                                           *
 
     space_mission = [
         {
